@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#0a0b0f" />
+  <meta name="description" content="A webcam-based hand gesture to voice prototype powered by Google MediaPipe." />
+  <title>GLOSS — Let your hands speak</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="ambient ambient-one" aria-hidden="true"></div>
+  <div class="ambient ambient-two" aria-hidden="true"></div>
+  <div class="app-shell">
+    <header class="header">
+      <a class="brand" href="#top" aria-label="Gloss home">
+        <span class="brand-symbol" aria-hidden="true"><span></span><span></span><span></span></span>
+        <span>gloss<span class="brand-period">.</span></span>
+      </a>
+      <div class="header-center"><span class="header-line"></span><span>GESTURE INTELLIGENCE / EXPERIMENT 01</span><span class="header-line"></span></div>
+      <div class="header-right"><span class="system-dot"></span><span>LOCAL-FIRST PROTOTYPE</span></div>
+    </header>
+
+    <main id="top">
+      <section class="hero" aria-labelledby="heroTitle">
+        <div class="eyebrow"><span class="eyebrow-dash"></span> THE FUTURE OF EXPRESSION <span class="tiny-tag">BETA / 001</span></div>
+        <h1 id="heroTitle">What if your hands <em>had a voice?</em></h1>
+        <div class="hero-details">
+          <p>Move your hands. Watch AI recognize a gesture. Hear a message spoken aloud. Communication, explored in real time.</p>
+          <span class="hero-index">01 / LIVE EXPERIENCE</span>
+        </div>
+      </section>
+
+      <section class="workspace" aria-label="Live gesture recognition studio">
+        <div class="workspace-topline">
+          <div class="work-title"><span class="status-indicator" id="liveDot"></span><span>LIVE STUDIO</span><span class="work-separator">/</span><span id="studioStatus">STANDBY</span></div>
+          <div class="topline-right"><span id="modelStatus">MODELS NOT LOADED</span><span class="clock-text" id="clock">--:--:--</span></div>
+        </div>
+        <div class="workspace-grid">
+          <div class="camera-column">
+            <div class="camera-stage" id="cameraStage">
+              <video id="webcam" autoplay muted playsinline aria-label="Live webcam video"></video>
+              <canvas id="trackingCanvas" aria-hidden="true"></canvas>
+              <div class="camera-shader" aria-hidden="true"></div>
+              <div class="grid-backdrop" aria-hidden="true"></div>
+              <div class="camera-corner top-left"></div><div class="camera-corner top-right"></div>
+              <div class="camera-corner bottom-left"></div><div class="camera-corner bottom-right"></div>
+              <div class="camera-tags"><span class="camera-label"><span class="tiny-led"></span> CAM_01 / <span id="cameraTag">OFFLINE</span></span><span class="live-res">LIVE • VISION</span></div>
+              <div class="camera-idle" id="cameraIdle">
+                <div class="idle-illustration" aria-hidden="true">
+                  <svg viewBox="0 0 190 190" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <circle cx="95" cy="95" r="88" stroke="#6cd8bb" stroke-opacity=".12" stroke-dasharray="3 8"/>
+                    <circle cx="95" cy="95" r="70" stroke="#6cd8bb" stroke-opacity=".22"/>
+                    <path d="M74 140L63 120C53 104 48 96 57 90C63 87 70 93 79 101L71 47C70 40 73 35 79 34C86 33 90 38 91 46L94 75L92 31C92 24 96 21 102 22C107 23 110 27 110 33L112 76L113 42C114 35 118 32 124 33C130 34 133 38 132 45L129 83L136 58C138 52 143 49 149 52C156 55 157 61 154 68L144 109C139 128 128 142 108 147L92 148Z" stroke="#9cf4d6" stroke-width="2" stroke-linejoin="round"/>
+                    <g fill="#c3ffe7"><circle cx="79" cy="34" r="3"/><circle cx="102" cy="22" r="3"/><circle cx="124" cy="33" r="3"/><circle cx="149" cy="52" r="3"/><circle cx="57" cy="90" r="3"/><circle cx="91" cy="116" r="3"/><circle cx="125" cy="119" r="3"/></g>
+                  </svg>
+                </div>
+                <span class="idle-kicker">YOUR CAMERA IS OFFLINE</span>
+                <h2>Make your first move.</h2>
+                <p>Start your camera and hold a gesture inside the frame.</p>
+                <button class="primary-button idle-button" id="idleStart"><span class="button-icon">◉</span> Start camera <span class="button-arrow">↗</span></button>
+              </div>
+              <div class="detection-bubble" id="detectionBubble" hidden>
+                <span class="detection-caption">HAND GESTURE <span id="confidenceCaption">—</span></span>
+                <span id="bubbleGesture">Searching...</span>
+                <div class="progress-track"><div class="progress-fill" id="holdProgress"></div></div>
+                <span class="hold-label" id="holdLabel">Hold to confirm</span>
+              </div>
+              <div class="frame-footer"><span>MEDIAPIPE / VISION TASKS</span><span id="frameCount">NO HAND DETECTED</span></div>
+            </div>
+            <div class="camera-controls">
+              <div class="controls-left"><button class="primary-button" id="cameraButton"><span class="button-icon" id="cameraButtonIcon">◉</span><span id="cameraButtonLabel">Start camera</span><span class="button-arrow">↗</span></button>
+                <button class="icon-button" id="mirrorButton" title="Toggle mirrored view" aria-label="Toggle mirrored view">⇄</button>
+                <button class="icon-button" id="landmarksButton" title="Toggle landmark overlay" aria-label="Toggle landmark overlay" aria-pressed="true">⌖</button></div>
+              <div class="controls-right"><label class="toggle-line" for="speechToggle"><span>AUTO VOICE</span><input id="speechToggle" type="checkbox" checked /><span class="switch-ui"></span></label></div>
+            </div>
+            <div class="alert" id="alert" role="status" aria-live="polite">Ready when you are. Camera access is only requested when you press Start.</div>
+          </div>
+          <aside class="insight-column" aria-label="Recognition results">
+            <article class="insight-card speech-card">
+              <div class="card-topline"><span class="section-number">01</span><span class="card-caption">VOICE TRANSLATION</span><span class="card-mini-icon">↗</span></div>
+              <div class="speech-content"><span class="speech-overline">CURRENT MESSAGE</span><div class="quote-mark">“</div><p id="spokenPhrase" class="spoken-phrase">Waiting for a gesture<span class="punctuation">.</span></p><span id="spokenSub" class="spoken-sub">Your recognized phrase will appear here.</span></div>
+              <div class="speech-footer"><button id="speakAgain" class="replay-button" disabled aria-label="Replay phrase"><span>◖))</span> Speak again</button><span id="speechState">VOICE READY</span></div>
+            </article>
+            <article class="insight-card cues-card"><div class="card-topline"><span class="section-number">02</span><span class="card-caption">FACIAL EXPRESSION CUES</span><span class="card-mini-icon">◌</span></div>
+              <div class="cue-primary"><span class="cue-orb" id="cueOrb">✳</span><div><span class="cue-title" id="cueTitle">No face detected</span><span class="cue-secondary" id="cueSubtitle">Optional visual signals</span></div></div>
+              <div class="cue-bars">
+                <div class="cue-row"><span>SMILE</span><div class="meter"><i id="smileMeter"></i></div><span id="smileValue">—</span></div>
+                <div class="cue-row"><span>BROW RAISE</span><div class="meter"><i id="browMeter"></i></div><span id="browValue">—</span></div>
+                <div class="cue-row"><span>MOUTH OPEN</span><div class="meter"><i id="mouthMeter"></i></div><span id="mouthValue">—</span></div>
+              </div>
+              <p class="cues-disclaimer">Facial movements are not a reliable measure of someone's emotions.</p>
+            </article>
+            <article class="insight-card history-card"><div class="card-topline"><span class="section-number">03</span><span class="card-caption">RECENT MESSAGES</span><button class="text-action" id="clearHistory" aria-label="Clear message history">CLEAR</button></div>
+              <div class="history-list" id="historyList" aria-live="polite"><div class="history-empty">No messages yet. Try a gesture!</div></div>
+            </article>
+          </aside>
+        </div>
+        <div class="pipeline" aria-label="Processing stages">
+          <div class="pipeline-item" id="handPipeline"><span class="pipeline-icon">✋</span><span class="pipeline-info"><strong>Hand tracking</strong><small>21 points per hand</small></span><span class="pipeline-light"></span></div>
+          <div class="pipeline-item" id="facePipeline"><span class="pipeline-icon">◎</span><span class="pipeline-info"><strong>Expression cues</strong><small>Face blendshapes</small></span><span class="pipeline-light"></span></div>
+          <div class="pipeline-item" id="phrasePipeline"><span class="pipeline-icon">✧</span><span class="pipeline-info"><strong>Phrase mapping</strong><small>5 example gestures</small></span><span class="pipeline-light"></span></div>
+          <div class="pipeline-item" id="voicePipeline"><span class="pipeline-icon">◖))</span><span class="pipeline-info"><strong>Voice output</strong><small>Browser speech</small></span><span class="pipeline-light"></span></div>
+        </div>
+      </section>
+
+      <section class="learn-section" aria-labelledby="tryTitle">
+        <div class="learn-head"><div><span class="eyebrow small-eyebrow">THE PLAYGROUND / 005</span><h2 id="tryTitle">Five gestures. <em>Infinite possibility.</em></h2><p>Try these simple built-in MediaPipe gestures, each mapped to a sample phrase. These mappings are not sign-language translations.</p></div><div class="handprint-circle" aria-hidden="true">✳</div></div>
+        <div class="gesture-grid" id="gestureGrid">
+          <div class="gesture-card"><span class="gesture-num">01 / OPEN PALM</span><span class="gesture-symbol">✋</span><strong>Hello.</strong><small>Open your hand</small></div>
+          <div class="gesture-card"><span class="gesture-num">02 / CLOSED FIST</span><span class="gesture-symbol">✊</span><strong>Stop.</strong><small>Close your hand</small></div>
+          <div class="gesture-card"><span class="gesture-num">03 / THUMB UP</span><span class="gesture-symbol">👍</span><strong>Yes!</strong><small>Raise your thumb</small></div>
+          <div class="gesture-card"><span class="gesture-num">04 / VICTORY</span><span class="gesture-symbol">✌️</span><strong>Thank you.</strong><small>Two fingers up</small></div>
+          <div class="gesture-card"><span class="gesture-num">05 / POINTING UP</span><span class="gesture-symbol">☝️</span><strong>I need help.</strong><small>Point one finger up</small></div>
+        </div>
+      </section>
+
+      <section class="custom-section" aria-labelledby="customTitle">
+        <div class="custom-copy"><span class="eyebrow small-eyebrow">PERSONALIZE / EXPERIMENT</span><h2 id="customTitle">Make the words <em>yours.</em></h2><p>Edit what each built-in gesture says. Your mappings are saved in this browser only. This does not train new signs.</p></div>
+        <div class="custom-panel"><div id="mappingEditor"></div><button class="secondary-button" id="saveMappings">Save phrase mappings <span>↗</span></button></div>
+      </section>
+    </main>
+    <footer class="footer"><span>GLOSS<span class="footer-dot">.</span> / AN EXPERIMENT IN ACCESSIBLE COMMUNICATION</span><span>MADE WITH GOOGLE MEDIAPIPE + WEB SPEECH API</span><span>© 2026 / PROTOTYPE</span></footer>
+  </div>
+  <script type="module" src="app.js"></script>
+</body>
+</html>
